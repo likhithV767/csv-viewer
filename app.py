@@ -298,7 +298,7 @@ if st.session_state["selected_file"]:
             dialog.style.color='#fff';
             dialog.style.padding = '10px 15px';
             dialog.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.5)';
-            dialog.style.border = '1px solid #F5F5F5'
+            dialog.style.border = '1px solid #F5F5F5';
             dialog.style.borderRadius = '10px';
             document.body.appendChild(dialog);
         }
