@@ -48,31 +48,22 @@ st.markdown(get_theme_css(st.session_state["theme"]), unsafe_allow_html=True)
 
 col1, col2, col3 = st.sidebar.columns([1, 2, 2])
 
-with col1:
-    st.button(
-        f"{'🌙' if st.session_state['theme'] == 'light' else '☀️'}",
-        on_click=toggle_theme
-    )
+with st.sidebar:
+    col1, col2 = st.columns([1, 1], gap="small")
 
-with col2:
-    button_bg_color = "#4CAF50" if st.session_state['theme'] == 'light' else "#2b2b2b"
-    button_text_color = "white" if st.session_state['theme'] == 'light' else "#4CAF50"
-    st.markdown(
-        f"<a href='https://text-compare.netlify.app/' target='_blank' style='text-decoration: none;'>"
-        f"<button style='background-color: {button_bg_color}; color: {button_text_color}; border: none; padding: 5px 15px; border:1px solid #505158 ;border-radius: 5px;'>"
-        "Text Compare"
-        "</button></a>",
-        unsafe_allow_html=True
-    )
+    with col1:
+        button_bg_color = "#4CAF50" if st.session_state['theme'] == 'light' else "#2b2b2b"
+        button_text_color = "white" if st.session_state['theme'] == 'light' else "#4CAF50"
+        st.link_button("Text Compare", "https://text-compare.netlify.app/")
 
-with col3:
-    if "expander_visible" not in st.session_state:
-        st.session_state["expander_visible"] = False
+    with col2:
+        if "expander_visible" not in st.session_state:
+            st.session_state["expander_visible"] = False
 
-    def toggle_expander():
-        st.session_state["expander_visible"] = not st.session_state["expander_visible"]
+        def toggle_expander():
+            st.session_state["expander_visible"] = not st.session_state["expander_visible"]
 
-    st.sidebar.button("Json View", on_click=toggle_expander)
+        st.sidebar.button("Json View", on_click=toggle_expander)
 
 if st.session_state["expander_visible"]:
     with st.expander("JSON View", expanded=True):
