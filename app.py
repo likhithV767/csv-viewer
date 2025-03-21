@@ -46,24 +46,22 @@ def get_theme_css(theme):
 st.sidebar.header("Interactive CSV Viewer", divider=True)
 st.markdown(get_theme_css(st.session_state["theme"]), unsafe_allow_html=True)
 
-col1, col2, col3 = st.sidebar.columns([1, 2, 2])
 
 with st.sidebar:
-    col1, col2 = st.columns([1, 1], gap="small")
+    with st.container():
+        col1, col2 = st.columns([1, 1], gap="small")  
 
-    with col1:
-        button_bg_color = "#4CAF50" if st.session_state['theme'] == 'light' else "#2b2b2b"
-        button_text_color = "white" if st.session_state['theme'] == 'light' else "#4CAF50"
-        st.link_button("Text Compare", "https://text-compare.netlify.app/")
+        with col1:
+            st.link_button("Text Compare", "https://text-compare.netlify.app/")
 
-    with col2:
-        if "expander_visible" not in st.session_state:
-            st.session_state["expander_visible"] = False
+        with col2:
+            if "expander_visible" not in st.session_state:
+                st.session_state["expander_visible"] = False
 
-        def toggle_expander():
-            st.session_state["expander_visible"] = not st.session_state["expander_visible"]
+            def toggle_expander():
+                st.session_state["expander_visible"] = not st.session_state["expander_visible"]
 
-        st.sidebar.button("Json View", on_click=toggle_expander)
+            st.button("JSON View", on_click=toggle_expander) 
 
 if st.session_state["expander_visible"]:
     with st.expander("JSON View", expanded=True):
