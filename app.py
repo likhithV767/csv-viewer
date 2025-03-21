@@ -33,6 +33,7 @@ def get_theme_css(theme):
         overflow: auto !important; 
     }}
 
+
     .csv-table-container {{
         max-height: 70vh;  /* Limit height */
         overflow-y: auto;  /* Allow scrolling */
@@ -45,7 +46,7 @@ def get_theme_css(theme):
 st.sidebar.header("Interactive CSV Viewer", divider=True)
 st.markdown(get_theme_css(st.session_state["theme"]), unsafe_allow_html=True)
 
-col1, col2 = st.sidebar.columns([1, 3])
+col1, col2, col3 = st.sidebar.columns([1, 2, 2])
 
 with col1:
     st.button(
@@ -63,6 +64,28 @@ with col2:
         "</button></a>",
         unsafe_allow_html=True
     )
+
+with col3:
+    if "expander_visible" not in st.session_state:
+        st.session_state["expander_visible"] = False
+
+    def toggle_expander():
+        st.session_state["expander_visible"] = not st.session_state["expander_visible"]
+
+    st.sidebar.button("Json View", on_click=toggle_expander)
+
+if st.session_state["expander_visible"]:
+    with st.expander("JSON View", expanded=True):
+        if st.session_state["selected_file"]:
+            df = st.session_state["uploaded_files"][st.session_state["selected_file"]]
+            if not df.empty:
+                st.json(df.to_dict(orient="records"))
+            else:
+                st.warning("No data available.")
+        else:
+            st.warning("No file selected.")
+
+
 
 uploaded_files = st.sidebar.file_uploader("", type="csv", accept_multiple_files=True)
 if uploaded_files:
@@ -105,7 +128,7 @@ if st.session_state["selected_file"]:
 
     st.subheader(f"{st.session_state['selected_file']}")
 
-    col1, col2= st.columns(2)  
+    col1, col2 = st.columns(2)  
     with col1:
         rows_per_page = st.slider("Rows per page", min_value=5, max_value=100, value=10, step=5)
 
@@ -113,14 +136,17 @@ if st.session_state["selected_file"]:
         total_pages = int(np.ceil(df.shape[0] / rows_per_page))
         current_page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1)
 
-    total_pages = int(np.ceil(df.shape[0] / rows_per_page))
-        
     start_idx = (current_page - 1) * rows_per_page
     end_idx = min(start_idx + rows_per_page, df.shape[0])
-        
+
     st.caption(f"Showing rows {start_idx+1} to {end_idx} of {df.shape[0]}")
-        
-    df_slice = df.iloc[start_idx:end_idx]
+    
+    df_slice = df.iloc[start_idx:end_idx] 
+    # for idx, row in df_slice.iterrows():
+    #     with st.expander(f"Details - Row {idx+1}"):
+    #         st.write(row.to_dict())
+
+    
 
 
     def df_to_interactive_html(df):
@@ -132,9 +158,9 @@ if st.session_state["selected_file"]:
         }}
                    .csv-table {{
             border-collapse: collapse;
-            width: 100%;         
+            min-width: 100%;         
             font-family: Arial, sans-serif;
-            table-layout: fixed;
+            table-layout: auto;
             background-color: {"#1e1e1e" if st.session_state['theme'] == 'dark' else "#ffffff"};
             color: {"#ffffff" if st.session_state['theme'] == 'dark' else "#131010"};
             box-shadow: 0px 35px 50px rgba( 0, 0, 0, 0.2 );
@@ -279,36 +305,53 @@ if st.session_state["selected_file"]:
                 console.error('Could not copy text: ', err);
             });
         }
-        function showDialog(rowIdx, colName, value) {
-            const dialogHtml = `
-                <div style='padding: 5px; border-radius: 5px'>
-                    <p><strong>Row ${rowIdx}, Column '${colName}'</strong></p>
-                    <p>${value}</p>
-                    <button class='dialog-button' onclick='copyToClipboard("${value}")'>Copy</button>
-                    <button class='dialog-button' onclick='closeDialog()'>Close</button>
-                </div>
-            `;
-            const dialog = document.createElement('div');
-            dialog.innerHTML = dialogHtml;
-            dialog.style.position = 'fixed';
-            dialog.style.top = '50%';
-            dialog.style.left = '50%';
-            dialog.style.transform = 'translate(-50%, -50%)';
-            dialog.style.backgroundColor = '#1E201E';
-            dialog.style.color='#fff';
-            dialog.style.padding = '10px 15px';
-            dialog.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.5)';
-            dialog.style.border = '1px solid #F5F5F5';
-            dialog.style.borderRadius = '10px';
-            document.body.appendChild(dialog);
-        }
+function showDialog(rowIdx, colName, value) {
+    setTimeout(() => {
+        const dialog = document.createElement('div');
+        dialog.id = "custom-dialog";
+        dialog.style.position = 'fixed';
+        dialog.style.top = '50%';
+        dialog.style.left = '50%';
+        dialog.style.transform = 'translate(-50%, -50%)';
+        dialog.style.backgroundColor = '#1E201E';
+        dialog.style.color = '#fff';
+        dialog.style.padding = '10px 15px';
+        dialog.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.5)';
+        dialog.style.border = '1px solid #F5F5F5';
+        dialog.style.borderRadius = '10px';
+        dialog.style.zIndex = '1000';
 
-        function closeDialog() {
-            const dialog = document.querySelector('div[style*="position: fixed"]');
-            if (dialog) {
-                document.body.removeChild(dialog);
-            }
-        }
+        const content = document.createElement('p');
+        content.style.whiteSpace = 'pre-wrap'; 
+        content.style.wordBreak = 'break-word';
+        content.textContent = `Row ${rowIdx}, Column '${colName}'\n\n${value}`; 
+
+        const copyButton = document.createElement('button');
+        copyButton.className = 'dialog-button';
+        copyButton.textContent = 'Copy';
+        copyButton.onclick = () => copyToClipboard(value);
+
+        const closeButton = document.createElement('button');
+        closeButton.className = 'dialog-button';
+        closeButton.textContent = 'Close';
+        closeButton.onclick = () => document.body.removeChild(dialog);
+
+        dialog.appendChild(content);
+        dialog.appendChild(copyButton);
+        dialog.appendChild(closeButton);
+
+        document.body.appendChild(dialog);
+    }, 100);
+}
+
+
+       function closeDialog() {
+    const dialog = document.getElementById('custom-dialog');
+    if (dialog) {
+        document.body.removeChild(dialog);
+    }
+}
+
         </script>
         """
         return html
