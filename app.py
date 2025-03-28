@@ -101,10 +101,10 @@ if st.session_state["selected_file"]:
     df = st.session_state["uploaded_files"][st.session_state["selected_file"]]
 
     if st.session_state["view_mode"] == "JSON":
-        st.subheader(f"{st.session_state['selected_file']} - JSON View")
+        st.subheader(f"{st.session_state['selected_file']}")
         st.json(df.to_dict(orient="records"))
     elif st.session_state["view_mode"] == "Table":
-        st.subheader(f"{st.session_state['selected_file']} - Table View")
+        st.subheader(f"{st.session_state['selected_file']}")
         try:
             edited_df = st.data_editor(df, num_rows="dynamic")
         except Exception as e:
