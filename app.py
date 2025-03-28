@@ -46,6 +46,15 @@ def get_theme_css(theme):
     </style>
     """
 
+# Custom CSS to force text areas to expand to full width in their containers
+st.markdown("""
+    <style>
+    div[data-testid="stTextArea"] > div > textarea {
+        width: 100% !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 st.sidebar.header("Interactive CSV Viewer")
 st.markdown(get_theme_css(st.session_state["theme"]), unsafe_allow_html=True)
 
@@ -105,26 +114,24 @@ if st.session_state["selected_file"]:
         st.caption("Changes saved automatically.")
 
     st.markdown("---")
-    col_toggle, _ = st.columns([1, 6])
-    with col_toggle:
-        if st.button("Toggle Text Compare"):
-            toggle_text_compare()
+    if st.button("Toggle Text Compare"):
+        toggle_text_compare()
 
     if st.session_state["show_text_compare"]:
-        st.subheader("Word by Word Text Compare")
-        col_actions = st.columns(2)
-        with col_actions[0]:
-            compare_clicked = st.button("Compare")
-        with col_actions[1]:
-            clear_clicked = st.button("Clear", on_click=clear_text_compare)
-        
         key1 = f"text_compare_input1_{st.session_state['clear_counter']}"
         key2 = f"text_compare_input2_{st.session_state['clear_counter']}"
+        
         col_texts = st.columns(2)
         with col_texts[0]:
             text1 = st.text_area("Text 1", key=key1, value="", height=200)
         with col_texts[1]:
             text2 = st.text_area("Text 2", key=key2, value="", height=200)
+
+        col_actions = st.columns(2)
+        with col_actions[0]:
+            compare_clicked = st.button("Compare")
+        with col_actions[1]:
+            clear_clicked = st.button("Clear", on_click=clear_text_compare)
         
         if compare_clicked:
             import difflib
